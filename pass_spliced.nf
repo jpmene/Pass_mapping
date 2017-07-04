@@ -10,11 +10,11 @@
 /*
 *params input 
 */
-params.csfasta_1 = "$baseDir/data/data_pass/*F3.csfasta"
-params.csfasta_2 = "$baseDir/data/data_pass/*F5-BC.csfasta"
-params.qual_1 = "$baseDir/data/data_pass/*F3.QV.qual"
-params.qual_2 = "$baseDir/data/data_pass/*F5-BC.QV.qual"
-params.genome = "$baseDir/data/data_pass/1M_hg19.fasta"
+params.csfasta_1 = "$baseDir/data_pass/*F3.csfasta"
+params.csfasta_2 = "$baseDir/data_pass/*F5-BC.csfasta"
+params.qual_1 = "$baseDir/data_pass/*F3.QV.qual"
+params.qual_2 = "$baseDir/data_pass/*F5-BC.QV.qual"
+params.genome = "$baseDir/data_pass/1M_hg19.fasta"
 params.path_Pass  = "/usr/local/bin/pass" 
 params.cpu = "4" 
 params.index = null
@@ -167,6 +167,8 @@ ${path_Pass} -R $genome  \
 
 process spliced_Alignment_Read_1_step_3{
     tag{id}
+    errorStrategy 'ignore'
+
 
     input: 
     set id ,file(csfasta), file(qual) from focus_1
@@ -244,6 +246,7 @@ ${path_Pass} -R $genome  \
 
 process spliced_Alignment_Read_2_step_3{
     tag{id}
+    errorStrategy 'ignore'
 
     input: 
     set id ,file(csfasta), file(qual) from focus_2
@@ -301,7 +304,7 @@ ${path_Pass} -program pairing \
     -unique_single 1 \
     -stdout -cpu ${cpu} -pe_type 0 -tags F3 F5-BC \
     > ${id}_global_paired_alignments.sam
-
+>
 
     """
     //attention au tags -tags F3 F5-BC
