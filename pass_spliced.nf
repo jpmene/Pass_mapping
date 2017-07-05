@@ -16,7 +16,6 @@ params.qual_1 = "$baseDir/data_pass/*F3.QV.qual"
 params.qual_2 = "$baseDir/data_pass/*F5-BC.QV.qual"
 params.genome = "$baseDir/data_pass/1M_hg19.fasta"
 params.path_Pass  = "/usr/local/bin/pass" 
-params.cpu = "4" 
 params.index = null
 params.help = false
 
@@ -58,17 +57,16 @@ csfasta_qual_1 = read_1.combine(qual_1,by:0)
 csfasta_qual_2 = read_2.combine(qual_2,by:0)
 
 path_Pass= params.path_Pass
-cpu = params.cpu
 
 
 //csfasta_qual_1.subscribe { println "$it"}
 //csfasta_qual_2.subscribe { println "$it"}
 
 if(params.index == null){
-
+        
 
     process buildIndex{
-
+        cpus 4
         input:
         file genome from genome_file
     
@@ -77,7 +75,7 @@ if(params.index == null){
 
         """
         ${path_Pass} -p 11111100111111 -d  $genome \
-             -cpu ${cpu} -solidCS -D ${genome}.bin
+             -cpu ${task.cpus} -solidCS -D ${genome}.bin
         """
     }
 }
@@ -108,6 +106,8 @@ else{
 
 process spliced_Alignment_Read_1_step_1{
     tag{id}
+    cpus 4
+    publishDir "result/Pass/${id}/global/F3"
 
     input: 
     set id ,file(csfasta), file(qual) from csfasta_qual_1
@@ -116,11 +116,12 @@ process spliced_Alignment_Read_1_step_1{
     output: 
     set id , file ("*global_result.sam") into global_result_1
     set id , file ("*not_aligned.csfasta"), file ("*not_aligned.qual") into not_aligned_1
+    set id , file (".command.log") into log_1
 
     
     """
 ${path_Pass} -R $genome  \
-    -cpu ${cpu} -flc 1 -fid 90 -sam -b -pst_word_range 4 4 \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -pst_word_range 4 4 \
     -csfasta $csfasta \
     -qual $qual \
     -not_aligned -na_file ${id}1_not_aligned \
@@ -138,6 +139,7 @@ ${path_Pass} -R $genome  \
 
 process spliced_Alignment_Read_1_step_2{
     tag{id}
+    cpus 4
 
     input: 
     set id ,file(csfasta), file(qual) from not_aligned_1
@@ -148,7 +150,7 @@ process spliced_Alignment_Read_1_step_2{
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${cpu} -flc 1 -fid 90 -sam\
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam\
     -csfasta $csfasta \
     -qual $qual \
     -l -fle 10 -focus_check ${id}1_focus \
@@ -168,6 +170,7 @@ ${path_Pass} -R $genome  \
 process spliced_Alignment_Read_1_step_3{
     tag{id}
     errorStrategy 'ignore'
+    cpus 4
 
 
     input: 
@@ -180,7 +183,7 @@ process spliced_Alignment_Read_1_step_3{
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${cpu} -flc 1 -fid 90 -sam \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam \
     -csfasta $csfasta \
     -qual $qual \
     -spliced dna -percent_tolerance 30 -fle 10 \
@@ -203,6 +206,8 @@ ${path_Pass} -R $genome  \
 
 process spliced_Alignment_Read_2_step_1{
     tag{id}
+    cpus 4
+    publishDir "result/Pass/${id}/global/F5-BC"
 
     input: 
     set id , file(csfasta), file(qual) from csfasta_qual_2
@@ -211,11 +216,11 @@ process spliced_Alignment_Read_2_step_1{
     output: 
     set id ,file ("*_global_result.sam") into global_result_2
     set id , file ("*not_aligned.csfasta"), file ("*not_aligned.qual") into not_aligned_2
-
+    set id , file (".command.log") into log_2
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${cpu} -flc 1 -fid 90 -sam -b -pst_word_range 4 4 \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -pst_word_range 4 4 \
     -csfasta $csfasta \
     -qual $qual \
     -not_aligned -na_file $id"2_not_aligned" \
@@ -225,6 +230,7 @@ ${path_Pass} -R $genome  \
 
 process spliced_Alignment_Read_2_step_2{
     tag{id}
+    cpus 4
 
     input: 
     set id ,file(csfasta), file(qual) from not_aligned_2
@@ -236,7 +242,7 @@ process spliced_Alignment_Read_2_step_2{
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${cpu} -flc 1 -fid 90 -sam \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam \
     -csfasta $csfasta \
     -qual $qual \
     -l -fle 10 -focus_check $id"2_focus" \
@@ -247,6 +253,7 @@ ${path_Pass} -R $genome  \
 process spliced_Alignment_Read_2_step_3{
     tag{id}
     errorStrategy 'ignore'
+    cpus 4
 
     input: 
     set id ,file(csfasta), file(qual) from focus_2
@@ -258,7 +265,7 @@ process spliced_Alignment_Read_2_step_3{
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${cpu} -flc 1 -fid 90 -sam \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam \
     -csfasta $csfasta \
     -qual $qual \
     -spliced dna -percent_tolerance 30 -fle 10 \
@@ -287,7 +294,8 @@ spliced = spliced_result_1.combine (spliced_result_2,by:0)
 process pairing_global_result{
     tag{id}
     errorStrategy 'ignore'
-
+    cpus 4
+    publishDir "result/Pass/${id}/global/paired"
     input: 
     set id , file (read_1_map) , file (read_2_map) from global
 
@@ -302,10 +310,8 @@ ${path_Pass} -program pairing \
     -range 0 3000 10000 \
     -unique_pair 1 \
     -unique_single 1 \
-    -stdout -cpu ${cpu} -pe_type 0 -tags F3 F5-BC \
+    -stdout -cpu ${task.cpus} -pe_type 0 -tags F3 F5-BC \
     > ${id}_global_paired_alignments.sam
->
-
     """
     //attention au tags -tags F3 F5-BC
 }
@@ -313,7 +319,9 @@ ${path_Pass} -program pairing \
 
 process pairing_spliced_result{
     tag{id}
-    errorStrategy 'ignore'    
+    errorStrategy 'ignore' 
+    cpus 4   
+    publishDir "result/Pass/${id}/spliced/paired"
 
     input: 
     set id , file (read_1_map), file (read_2_map) from spliced
@@ -330,7 +338,7 @@ ${path_Pass} -program pairing \
     -range 0 3000 10000 \
     -unique_pair 1 \
     -unique_single 1 \
-    -stdout -cpu ${cpu} -pe_type 0 -tags F3 F5-BC \
+    -stdout -cpu ${task.cpus} -pe_type 0 -tags F3 F5-BC \
     > ${id}_spliced_paired_alignments.sam
 
     """
@@ -350,8 +358,8 @@ ${path_Pass} -program pairing \
 process convert_Sam_to_Bam_spliced{
     tag{id}
     errorStrategy 'ignore'
-    
-    publishDir "result/pass/${id}"
+    publishDir "result/Pass/${id}/spliced/paired/"
+
     input:
     set id , file (spliced_paired_alignement) from spliced_result_paired
 
@@ -372,7 +380,8 @@ process convert_Sam_to_Bam_spliced{
 process convert_Sam_to_Bam_global{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/pass/${id}"
+    publishDir "result/Pass/${id}/global/paired/"
+
     input:
     set id , file (global_paired_alignement) from global_result_paired
 
@@ -401,7 +410,7 @@ process convert_Sam_to_Bam_global{
 process mergeBam{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/pass/${id}"
+    publishDir "result/Pass/${id}/merge"
 
     input:
     set id , file (spliced_paired_alignement) from spliced_paired_bam
