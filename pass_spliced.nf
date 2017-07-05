@@ -310,6 +310,8 @@ ${path_Pass} -program pairing \
     -range 0 3000 10000 \
     -unique_pair 1 \
     -unique_single 1 \
+    -not_unique_pair \
+    -not_unique_single \
     -stdout -cpu ${task.cpus} -pe_type 0 -tags F3 F5-BC \
     > ${id}_global_paired_alignments.sam
     """
@@ -338,6 +340,8 @@ ${path_Pass} -program pairing \
     -range 0 3000 10000 \
     -unique_pair 1 \
     -unique_single 1 \
+    -not_unique_pair \
+    -not_unique_single \
     -stdout -cpu ${task.cpus} -pe_type 0 -tags F3 F5-BC \
     > ${id}_spliced_paired_alignments.sam
 
