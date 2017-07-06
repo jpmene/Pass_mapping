@@ -121,7 +121,7 @@ process spliced_Alignment_Read_1_step_1{
     
     """
 ${path_Pass} -R $genome  \
-    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -pst_word_range 4 4 \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -max_best_hits 200 -pst_word_range 4 4 \
     -csfasta $csfasta \
     -qual $qual \
     -not_aligned -na_file ${id}1_not_aligned \
@@ -186,7 +186,7 @@ ${path_Pass} -R $genome  \
     -cpu ${task.cpus} -flc 1 -fid 90 -sam \
     -csfasta $csfasta \
     -qual $qual \
-    -spliced dna -percent_tolerance 30 -fle 10 \
+    -spliced rna -percent_tolerance 30 -fle 10 \
     -not_aligned \
     > ${id}1_spliced_result.sam
     """
@@ -220,7 +220,7 @@ process spliced_Alignment_Read_2_step_1{
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -pst_word_range 4 4 \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -max_best_hits 200 -pst_word_range 4 4 \
     -csfasta $csfasta \
     -qual $qual \
     -not_aligned -na_file $id"2_not_aligned" \
@@ -268,7 +268,7 @@ ${path_Pass} -R $genome  \
     -cpu ${task.cpus} -flc 1 -fid 90 -sam \
     -csfasta $csfasta \
     -qual $qual \
-    -spliced dna -percent_tolerance 30 -fle 10 \
+    -spliced rna -percent_tolerance 30 -fle 10 \
     -not_aligned \
     > ${id}2_spliced_result.sam
     """
