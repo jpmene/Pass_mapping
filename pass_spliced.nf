@@ -16,6 +16,7 @@ params.qual_1 = "$baseDir/data_pass/*F3.QV.qual"
 params.qual_2 = "$baseDir/data_pass/*F5-BC.QV.qual"
 params.genome = "$baseDir/data_pass/1M_hg19.fasta"
 params.path_Pass  = "/usr/local/bin/pass" 
+params.genome_name  ="GRCh38"
 params.index = null
 params.help = false
 
@@ -107,7 +108,7 @@ else{
 process spliced_Alignment_Read_1_step_1{
     tag{id}
     cpus 4
-    publishDir "result/Pass/${id}/global/F3"
+    publishDir "result/Pass/$params.genome_name/${id}/global/F3",mode: 'move'
 
     input: 
     set id ,file(csfasta), file(qual) from csfasta_qual_1
@@ -207,7 +208,7 @@ ${path_Pass} -R $genome  \
 process spliced_Alignment_Read_2_step_1{
     tag{id}
     cpus 4
-    publishDir "result/Pass/${id}/global/F5-BC"
+    publishDir "result/Pass/$params.genome_name/${id}/global/F5-BC",mode: 'move'
 
     input: 
     set id , file(csfasta), file(qual) from csfasta_qual_2
@@ -295,13 +296,14 @@ process pairing_global_result{
     tag{id}
     errorStrategy 'ignore'
     cpus 4
-    publishDir "result/Pass/${id}/global/paired"
+    publishDir "result/Pass/$params.genome_name/${id}/global/paired",mode: 'move'
+
     input: 
     set id , file (read_1_map) , file (read_2_map) from global
 
     output: 
     set id , file ("*_global_paired_alignments.sam") into global_result_paired
-
+    set id , file (".command.log") into log_pairing
 
     """
 ${path_Pass} -program pairing \
@@ -310,8 +312,8 @@ ${path_Pass} -program pairing \
     -range 0 3000 10000 \
     -unique_pair 1 \
     -unique_single 1 \
-    -not_unique_pair \
-    -not_unique_single \
+    -not_unique_pair 1 \
+    -not_unique_single 1 \
     -stdout -cpu ${task.cpus} -pe_type 0 -tags F3 F5-BC \
     > ${id}_global_paired_alignments.sam
     """
@@ -323,7 +325,7 @@ process pairing_spliced_result{
     tag{id}
     errorStrategy 'ignore' 
     cpus 4   
-    publishDir "result/Pass/${id}/spliced/paired"
+    publishDir "result/Pass/$params.genome_name/${id}/spliced/paired",mode: 'move'
 
     input: 
     set id , file (read_1_map), file (read_2_map) from spliced
@@ -340,8 +342,8 @@ ${path_Pass} -program pairing \
     -range 0 3000 10000 \
     -unique_pair 1 \
     -unique_single 1 \
-    -not_unique_pair \
-    -not_unique_single \
+    -not_unique_pair 1 \
+    -not_unique_single 1 \
     -stdout -cpu ${task.cpus} -pe_type 0 -tags F3 F5-BC \
     > ${id}_spliced_paired_alignments.sam
 
@@ -362,7 +364,7 @@ ${path_Pass} -program pairing \
 process convert_Sam_to_Bam_spliced{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/Pass/${id}/spliced/paired/"
+    publishDir "result/Pass/$params.genome_name/${id}/spliced/paired/",mode: 'move'
 
     input:
     set id , file (spliced_paired_alignement) from spliced_result_paired
@@ -373,18 +375,13 @@ process convert_Sam_to_Bam_spliced{
 
     """
     samtools view -Sb -o ${id}_spliced_paired_alignments.bam $spliced_paired_alignement
-    samtools flagstat ${id}_spliced_paired_alignments.bam > stat
-
-    mkdir ${id}pass_spliced
-    mv ${id}*spliced_alignments* ${id}pass_spliced/.
-    mv stat ${id}pass_spliced/.
     """
 
 }
 process convert_Sam_to_Bam_global{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/Pass/${id}/global/paired/"
+    publishDir "result/Pass/$params.genome_name/${id}/global/paired/",mode: 'move'
 
     input:
     set id , file (global_paired_alignement) from global_result_paired
@@ -394,11 +391,6 @@ process convert_Sam_to_Bam_global{
 
     """
     samtools view -Sb -o ${id}_global_paired_alignments.bam $global_paired_alignement
-    samtools flagstat ${id}_global_paired_alignments.bam > stat 
-
-    mkdir ${id}pass_global
-    mv ${id}*paired_alignments*.bam ${id}pass_global/.
-    mv stat ${id}pass_global/.
     """
 
 }
@@ -414,7 +406,7 @@ process convert_Sam_to_Bam_global{
 process mergeBam{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/Pass/${id}/merge"
+    publishDir "result/Pass/$params.genome_name/${id}/merge",mode: 'move'
 
     input:
     set id , file (spliced_paired_alignement) from spliced_paired_bam
@@ -425,11 +417,6 @@ process mergeBam{
 
     """
     samtools merge -n ${id}_all_paired_alignments.bam $spliced_paired_alignement $global_paired_alignement 
-    samtools flagstat ${id}_all_paired_alignments.bam > ${id}stat 
-
-    mkdir ${id}pass_merge
-    mv ${id}*paired_alignments*.bam ${id}pass_merge/.
-    mv stat ${id}pass_merge/.
     """
 }
 
