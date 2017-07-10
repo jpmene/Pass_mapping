@@ -108,7 +108,7 @@ else{
 process spliced_Alignment_Read_1_step_1{
     tag{id}
     cpus 4
-    publishDir "result/Pass/$params.genome_name/${id}/global/F3",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/global/F3",mode: 'copy'
 
     input: 
     set id ,file(csfasta), file(qual) from csfasta_qual_1
@@ -208,7 +208,7 @@ ${path_Pass} -R $genome  \
 process spliced_Alignment_Read_2_step_1{
     tag{id}
     cpus 4
-    publishDir "result/Pass/$params.genome_name/${id}/global/F5-BC",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/global/F5-BC",mode: 'copy'
 
     input: 
     set id , file(csfasta), file(qual) from csfasta_qual_2
@@ -296,7 +296,7 @@ process pairing_global_result{
     tag{id}
     errorStrategy 'ignore'
     cpus 4
-    publishDir "result/Pass/$params.genome_name/${id}/global/paired",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/global/paired",mode: 'copy'
 
     input: 
     set id , file (read_1_map) , file (read_2_map) from global
@@ -325,7 +325,7 @@ process pairing_spliced_result{
     tag{id}
     errorStrategy 'ignore' 
     cpus 4   
-    publishDir "result/Pass/$params.genome_name/${id}/spliced/paired",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/spliced/paired",mode: 'copy'
 
     input: 
     set id , file (read_1_map), file (read_2_map) from spliced
@@ -403,6 +403,7 @@ process convert_Sam_to_Bam_global{
 *-n       sort by read names
 */
 
+/*
 process mergeBam{
     tag{id}
     errorStrategy 'ignore'
@@ -420,3 +421,4 @@ process mergeBam{
     """
 }
 
+*/
