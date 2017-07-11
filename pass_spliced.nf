@@ -17,6 +17,7 @@ params.qual_2 = "$baseDir/data_pass/*F5-BC.QV.qual"
 params.genome = "$baseDir/data_pass/1M_hg19.fasta"
 params.path_Pass  = "/usr/local/bin/pass" 
 params.genome_name  ="GRCh38"
+params.multimapNmax = "200"
 params.index = null
 params.help = false
 
@@ -122,7 +123,7 @@ process spliced_Alignment_Read_1_step_1{
     
     """
 ${path_Pass} -R $genome  \
-    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -max_best_hits 200 -pst_word_range 4 4 \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -max_best_hits $params.multimapNmax -pst_word_range 4 4 \
     -csfasta $csfasta \
     -qual $qual \
     -not_aligned -na_file ${id}1_not_aligned \
@@ -221,7 +222,7 @@ process spliced_Alignment_Read_2_step_1{
 
     """
 ${path_Pass} -R $genome  \
-    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -max_best_hits 200 -pst_word_range 4 4 \
+    -cpu ${task.cpus} -flc 1 -fid 90 -sam -b -max_best_hits $params.multimapNmax -pst_word_range 4 4 \
     -csfasta $csfasta \
     -qual $qual \
     -not_aligned -na_file $id"2_not_aligned" \
@@ -421,4 +422,4 @@ process mergeBam{
     """
 }
 
-*/
+*/"
