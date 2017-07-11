@@ -422,4 +422,4 @@ process mergeBam{
     """
 }
 
-*/"
+*/
