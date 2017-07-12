@@ -173,6 +173,7 @@ process spliced_Alignment_Read_1_step_3{
     tag{id}
     errorStrategy 'ignore'
     cpus 4
+    publishDir "result/Pass/$params.genome_name/${id}/spliced/F3",mode: 'copy'
 
 
     input: 
@@ -181,7 +182,7 @@ process spliced_Alignment_Read_1_step_3{
 
     output: 
     set id , file ("*_spliced_result.sam") into spliced_result_1
-
+    set id , file (".command.log") into log_spliced_1
 
     """
 ${path_Pass} -R $genome  \
@@ -256,6 +257,7 @@ process spliced_Alignment_Read_2_step_3{
     tag{id}
     errorStrategy 'ignore'
     cpus 4
+    publishDir "result/Pass/$params.genome_name/${id}/spliced/F5-BC",mode: 'copy'
 
     input: 
     set id ,file(csfasta), file(qual) from focus_2
@@ -263,7 +265,7 @@ process spliced_Alignment_Read_2_step_3{
 
     output: 
     set id, file ("*spliced_result.sam") into spliced_result_2
-
+    set id , file (".command.log") into log_spliced_2
 
     """
 ${path_Pass} -R $genome  \
@@ -330,7 +332,7 @@ process pairing_spliced_result{
 
     input: 
     set id , file (read_1_map), file (read_2_map) from spliced
-
+    set id , file (".command.log") into log_pairing
 
     output: 
     set id , file ("*_spliced_paired_alignments.sam") into spliced_result_paired
@@ -365,33 +367,33 @@ ${path_Pass} -program pairing \
 process convert_Sam_to_Bam_spliced{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/Pass/$params.genome_name/${id}/spliced/paired/",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/spliced/paired/",mode: 'copy'
 
     input:
     set id , file (spliced_paired_alignement) from spliced_result_paired
 
     output:
-    set id ,file ("${id}pass_spliced/*_spliced_paired_alignments.bam") into spliced_paired_bam
+    set id ,file ("${id}spliced_paired_alignments.bam") into spliced_paired_bam
 
 
     """
-    samtools view -Sb -o ${id}_spliced_paired_alignments.bam $spliced_paired_alignement
+    samtools view -Sb -o ${id}spliced_paired_alignments.bam $spliced_paired_alignement
     """
 
 }
 process convert_Sam_to_Bam_global{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/Pass/$params.genome_name/${id}/global/paired/",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/global/paired/",mode: 'copy'
 
     input:
     set id , file (global_paired_alignement) from global_result_paired
 
     output:
-    set id ,file ("${id}pass_global/*_global_paired_alignments.bam") into global_paired_bam
+    set id ,file ("${id}global_paired_alignments.bam") into global_paired_bam
 
     """
-    samtools view -Sb -o ${id}_global_paired_alignments.bam $global_paired_alignement
+    samtools view -Sb -o ${id}global_paired_alignments.bam $global_paired_alignement
     """
 
 }
@@ -404,11 +406,11 @@ process convert_Sam_to_Bam_global{
 *-n       sort by read names
 */
 
-/*
+
 process mergeBam{
     tag{id}
     errorStrategy 'ignore'
-    publishDir "result/Pass/$params.genome_name/${id}/merge",mode: 'move'
+    publishDir "result/Pass/$params.genome_name/${id}/merge/",mode: 'move'
 
     input:
     set id , file (spliced_paired_alignement) from spliced_paired_bam
@@ -422,4 +424,3 @@ process mergeBam{
     """
 }
 
-*/
