@@ -306,7 +306,7 @@ process pairing_global_result{
 
     output: 
     set id , file ("*_global_paired_alignments.sam") into global_result_paired
-    set id , file (".command.log") into log_pairing
+    set id , file (".command.log") into log_pairing_global
 
     """
 ${path_Pass} -program pairing \
@@ -332,11 +332,10 @@ process pairing_spliced_result{
 
     input: 
     set id , file (read_1_map), file (read_2_map) from spliced
-    set id , file (".command.log") into log_pairing
 
     output: 
     set id , file ("*_spliced_paired_alignments.sam") into spliced_result_paired
-
+    set id , file (".command.log") into log_pairing_spliced
 
     """
 ${path_Pass} -program pairing \
